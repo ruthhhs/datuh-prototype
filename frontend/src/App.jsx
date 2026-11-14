@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { styles } from './styles.js';
+
+import logoIcon from './assets/logo-icon.png';
 
 const WS_URL = 'ws://localhost:8000/ws/detect';
 
@@ -13,6 +16,14 @@ const CCTV_SLOTS = [
   { id: 'CCTV 08', location: 'Tangga', isLive: false },
   { id: 'CCTV 09', location: 'Halaman Belakang', isLive: false },
 ];
+
+function PhoneIcon({ color = '#FFFFFF', size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 24" fill={color}>
+      <path d="M5 14C9 8 27 8 31 14L33 19C33 20 31 21 29 21L24 20C23 20 22 19 22 17L22 15C19 14 17 14 14 15L14 17C14 19 13 20 12 20L7 21C5 21 3 20 3 19L5 14Z" />
+    </svg>
+  );
+}
 
 export default function App() {
   const videoRef = useRef(null);
@@ -318,250 +329,236 @@ export default function App() {
   };
 
   return (
-    <div style={styles.wrapper}>
-      {/* =========================================================
-          SECTION 1: DARK GREEN HERO & MONITOR CCTV (TANPA NAVBAR)
-         ========================================================= */}
-      <section style={styles.topSection}>
-        {/* LOGO HEADER DATUH */}
-        <header style={styles.logoHeader}>
-          <div style={styles.logoMark}>
-            <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-              <path d="M10 8C18 8 26 14 28 24L18 28L12 18L10 8Z" fill="#E5CF7B" />
-              <circle cx="13" cy="29" r="4.5" fill="#E5CF7B" />
-            </svg>
-            <div>
-              <div style={styles.logoTitle}>DATUH</div>
-              <div style={styles.logoSub}>Deteksi Jatuh</div>
-            </div>
-          </div>
-        </header>
-
-        {/* JUDUL MONITOR CCTV */}
-        <h1 style={styles.mainHeading}>Monitor CCTV</h1>
-
-        {/* BANNER DARURAT SAAT FALL ACTIVE */}
-        {fallActive && (
-          <div style={styles.emergencyStrip}>
-            <span>🚨 PERINGATAN: ORANG JATUH TERDETEKSI DI CCTV 01!</span>
-            <button onClick={() => setFallActive(false)} style={styles.emergencyResetBtn}>
-              Matikan Alarm
-            </button>
-          </div>
-        )}
-
-        {/* GRID MONITOR CCTV 3x3 — KLIK PER KOTAK UNTUK ZOOM */}
-        <div style={styles.cctvOuterContainer}>
-          <div
-            style={{
-              ...styles.cctvGrid,
-              gridTemplateColumns: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
-              gridTemplateRows: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
-            }}
-          >
-            {CCTV_SLOTS.map((slot, index) => {
-              const isHidden = zoomedCctvId !== null && zoomedCctvId !== slot.id;
-              const isThisZoomed = zoomedCctvId === slot.id;
-
-              return (
-                <div
-                  key={slot.id}
-                  onClick={() => handleCellClick(slot.id)}
-                  title={isThisZoomed ? 'Klik untuk kembali ke tampilan 3x3' : `Klik untuk memperbesar ${slot.id}`}
-                  style={{
-                    ...styles.cctvCell,
-                    display: isHidden ? 'none' : 'flex',
-                    borderRight: !zoomedCctvId && (index + 1) % 3 !== 0 ? '3px solid #2C5E2E' : 'none',
-                    borderBottom: !zoomedCctvId && index < 6 ? '3px solid #2C5E2E' : 'none',
-                    outline: slot.isLive && fallActive ? '4px solid #DC2626' : 'none',
-                    cursor: isThisZoomed ? 'zoom-out' : 'zoom-in',
-                  }}
-                >
-                  {slot.isLive ? (
-                    <>
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        style={{
-                          ...styles.webcamVideo,
-                          display: isCameraOn ? 'block' : 'none',
-                        }}
-                      />
-                      <canvas
-                        ref={canvasRef}
-                        style={{
-                          ...styles.overlayCanvas,
-                          display: isCameraOn ? 'block' : 'none',
-                        }}
-                      />
-                      {!isCameraOn && (
-                        <div style={styles.camOffOverlay}>
-                          <span style={styles.camTag}>{slot.id} — {slot.location}</span>
-                          <button onClick={startWebcam} style={styles.startCamPill}>
-                            ▶ Aktifkan Kamera
-                          </button>
-                        </div>
-                      )}
-                      {isCameraOn && (
-                        <span style={styles.liveBadge}>
-                          ● LIVE {slot.id} ({detections.length} obj)
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <div style={styles.inactiveCell}>
-                      <span style={styles.inactiveLabel}>{slot.id}</span>
-                      <span style={styles.inactiveSub}>{slot.location}</span>
-                      {isThisZoomed && (
-                        <span style={{ fontSize: '11px', marginTop: '8px', fontWeight: 700 }}>
-                          (Kamera tidak terhubung — klik kotak untuk kembali)
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Indikator kecil di pojok saat mode zoom aktif */}
-                  {isThisZoomed && (
-                    <span style={styles.zoomHintCorner}>🔍 Klik kotak untuk keluar zoom</span>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Label statis sesuai desain mockup (non-interaktif, zoom lewat klik kotak) */}
-            {!zoomedCctvId && (
-              <div style={styles.zoomHintPill}>
-                Press to Zoom In
-              </div>
-            )}
-          </div>
-
-          {/* KAPSUL SAGE GREEN DI BAWAH GRID (CONTROL BAR KAMERA & MODEL) */}
-          <div style={styles.sageControlBar}>
-            <div style={styles.controlGroup}>
-              {!isCameraOn ? (
-                <button onClick={startWebcam} style={styles.controlBtnGold}>
-                  ▶ Mulai Deteksi
-                </button>
-              ) : (
-                <button onClick={stopWebcam} style={styles.controlBtnRed}>
-                  ⏹ Stop Kamera
-                </button>
-              )}
-
-              <button onClick={() => setIsMuted(!isMuted)} style={styles.controlBtnDark}>
-                {isMuted ? '🔇 Mute' : '🔊 Alarm On'}
-              </button>
-            </div>
-
-            <div style={styles.controlGroup}>
-              <label style={styles.sliderText}>
-                Conf: <strong>{Math.round(conf * 100)}%</strong>
-              </label>
-              <input
-                type="range"
-                min="0.1"
-                max="0.95"
-                step="0.05"
-                value={conf}
-                onChange={handleConfChange}
-                style={{ accentColor: '#E5CF7B', cursor: 'pointer' }}
-              />
-              <span style={styles.statusPill}>
-                {isConnected ? `WS OK (${latencyMs}ms)` : 'WS Offline'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
-          SECTION 2: CREAM BACKGROUND — RIWAYAT & MAU TELP?
-         ========================================================= */}
-      <section style={styles.middleSection}>
-        <div style={styles.riwayatOuterCard}>
-          <h2 style={styles.riwayatHeading}>Riwayat</h2>
-
-          <div style={styles.riwayatInnerWhite}>
-            <div style={styles.riwayatScrollArea}>
-              {incidents.map((item) => {
-                const isFall = item.status === 'Fall Detected';
-                return (
-                  <div key={item.id} style={styles.riwayatRow}>
-                    <div style={styles.thumbBox}>
-                      {item.thumbnail ? (
-                        <img
-                          src={item.thumbnail}
-                          alt="Snapshot"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : null}
-                    </div>
-
-                    <div style={styles.riwayatInfo}>
-                      <div
-                        style={{
-                          ...styles.riwayatStatus,
-                          color: isFall ? '#B91C1C' : '#718B70',
-                        }}
-                      >
-                        {item.status}
-                      </div>
-                      <div style={styles.riwayatMeta}>
-                        Time, Place: {item.time} — {item.place}
-                      </div>
-                      <div style={styles.riwayatMeta}>CCTV No. : {item.cctv}</div>
-                    </div>
-
-                    <div style={styles.riwayatActions}>
-                      {isFall ? (
-                        <>
-                          <button
-                            onClick={() => markFalseAlarm(item.id)}
-                            style={styles.circleGoldBtn}
-                            title="Tandai sebagai False Alarm"
-                          >
-                            ✕
-                          </button>
-                          <a
-                            href="tel:081234567890"
-                            style={styles.circleSageBtn}
-                            title="Hubungi Darurat"
-                          >
-                            <PhoneIcon color="#FFFFFF" size={18} />
-                          </a>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedIncident(item)}
-                          style={styles.detailsLink}
-                        >
-                          Details
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+    <div>
+      {/* ========= HEADER ========= */}
+      <header style={styles.headerSection}>
+        <div style={styles.logoMark}>
+          <img src={logoIcon} width="38" height="38" alt="logo-icon" />
+          <div style={styles.logoText}>
+            <h2>DATUH</h2>
+            <h6>Deteksi Jatuh</h6>
           </div>
         </div>
 
-        {/* BANNER "Mau telp? 0812-3456-7890" */}
         <div style={styles.callBanner}>
-          <span style={styles.callLabel}>Mau telp?</span>
           <a href="tel:081234567890" style={styles.callNumberLink}>
             <PhoneIcon color="#FFFFFF" size={34} />
             <span style={styles.phoneNumber}>0812-3456-7890</span>
           </a>
         </div>
+      </header>
+
+      {/* ========= MAIN SECTION ========= */}
+      <section style={styles.mainSection}>
+
+        {/* KAMERA CCTV */}
+        <div style={styles.leftSection}>
+          <h1>Monitor CCTV</h1>
+
+          {/* GRID MONITOR CCTV 3x3 — KLIK PER KOTAK UNTUK ZOOM */}
+          <div style={styles.cctvOuterContainer}>
+              <div
+                style={{
+                  ...styles.cctvGrid,
+                  gridTemplateColumns: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
+                  gridTemplateRows: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
+                }}
+              >
+                {CCTV_SLOTS.map((slot, index) => {
+                  const isHidden = zoomedCctvId !== null && zoomedCctvId !== slot.id;
+                  const isThisZoomed = zoomedCctvId === slot.id;
+
+                  // Asumsi: Kita cek apakah slot kamera ini sedang jatuh (misal CCTV 01 atau berdasarkan state fallActive)
+                  const isThisCameraFall = slot.id === 'CCTV 01' && fallActive;
+
+                  return (
+                    <div
+                      key={slot.id}
+                      onClick={() => handleCellClick(slot.id)}
+                      title={isThisZoomed ? 'Klik untuk kembali ke tampilan 3x3' : `Klik untuk memperbesar ${slot.id}`}
+                      style={{
+                        ...styles.cctvCell,
+                        display: isHidden ? 'none' : 'flex',
+                        borderRight: !zoomedCctvId && (index + 1) % 3 !== 0 ? '3px solid #2C5E2E' : 'none',
+                        borderBottom: !zoomedCctvId && index < 6 ? '3px solid #2C5E2E' : 'none',
+                        // Border merah dihilangkan total, diganti badge
+                        cursor: isThisZoomed ? 'zoom-out' : 'zoom-in',
+                      }}
+                    >
+                      {slot.isLive ? (
+                        <>
+                          <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            style={{
+                              ...styles.webcamVideo,
+                              display: isCameraOn ? 'block' : 'none',
+                            }}
+                          />
+                          <canvas
+                            ref={canvasRef}
+                            style={{
+                              ...styles.overlayCanvas,
+                              display: isCameraOn ? 'block' : 'none',
+                            }}
+                          />
+                          {!isCameraOn && (
+                            <div style={styles.camOffOverlay}>
+                              <span style={styles.camTag}>{slot.id} — {slot.location}</span>
+                              <button onClick={startWebcam} style={styles.startCamPill}>
+                                ▶ Aktifkan Kamera
+                              </button>
+                            </div>
+                          )}
+                          {isCameraOn && (
+                            <span style={styles.liveBadge}>
+                              ● LIVE {slot.id}
+                            </span>
+                          )}
+
+                          {/* BADGE JATUH DI MASING-MASING KAMERA JIKA TERDETEKSI */}
+                          {isThisCameraFall && (
+                            <div style={styles.cameraFallBadge}>
+                              🚨 JATUH
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div style={styles.inactiveCell}>
+                          <span style={styles.inactiveLabel}>{slot.id}</span>
+                          <span style={styles.inactiveSub}>{slot.location}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+            {/* KAPSUL SAGE GREEN DI BAWAH GRID (CONTROL BAR KAMERA & MODEL) */}
+            <div style={styles.sageControlBar}>
+              <div style={styles.controlGroup}>
+                {!isCameraOn ? (
+                  <button onClick={startWebcam} style={styles.controlBtnGold}>
+                    ▶ Mulai Deteksi
+                  </button>
+                ) : (
+                  <button onClick={stopWebcam} style={styles.controlBtnRed}>
+                    ⏹ Stop Kamera
+                  </button>
+                )}
+
+                <button onClick={() => setIsMuted(!isMuted)} style={styles.controlBtnDark}>
+                  {isMuted ? '🔇 Mute' : '🔊 Alarm On'}
+                </button>
+              </div>
+
+              <div style={styles.controlGroup}>
+                <label style={styles.sliderText}>
+                  Conf: <strong>{Math.round(conf * 100)}%</strong>
+                </label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="0.95"
+                  step="0.05"
+                  value={conf}
+                  onChange={handleConfChange}
+                  style={{ accentColor: '#E5CF7B', cursor: 'pointer' }}
+                />
+                <span style={styles.statusPill}>
+                  {isConnected ? `WS OK (${latencyMs}ms)` : 'WS Offline'}
+                </span>
+              </div>
+            </div>
+          </div>  
+        </div>
+
+        {/* RIWAYAT */}
+        <div style={styles.rightSection}>
+          <div style={styles.riwayatOuterCard}>
+            <div style={styles.riwayatHeaderContainer}>
+              <h2 style={styles.riwayatHeading}>Riwayat</h2>
+              {/* Status Aman / Terdeteksi Jatuh dipindah ke sini */}
+              <div style={{
+                ...styles.statusIndicatorBadge,
+                backgroundColor: fallActive ? '#DC2626' : '#2C5E2E'
+              }}>
+                {fallActive ? '⚠️ Terdeteksi Jatuh' : '✅ Aman'}
+              </div>
+            </div>
+
+            <div style={styles.riwayatInnerWhite}>
+              <div style={styles.riwayatScrollArea}>
+                {incidents.map((item) => {
+                  const isFall = item.status === 'Fall Detected';
+                  return (
+                    <div key={item.id} style={styles.riwayatRow}>
+                      <div style={styles.thumbBox}>
+                        {item.thumbnail ? (
+                          <img
+                            src={item.thumbnail}
+                            alt="Snapshot"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : null}
+                      </div>
+
+                      <div style={styles.riwayatInfo}>
+                        <div
+                          style={{
+                            ...styles.riwayatStatus,
+                            color: isFall ? '#B91C1C' : '#718B70',
+                          }}
+                        >
+                          {item.status}
+                        </div>
+                        <div style={styles.riwayatMeta}>
+                          Time, Place: {item.time} — {item.place}
+                        </div>
+                        <div style={styles.riwayatMeta}>CCTV No. : {item.cctv}</div>
+                      </div>
+
+                      <div style={styles.riwayatActions}>
+                        {isFall ? (
+                          <>
+                            <button
+                              onClick={() => markFalseAlarm(item.id)}
+                              style={styles.circleGoldBtn}
+                              title="Tandai sebagai False Alarm"
+                            >
+                              ✕
+                            </button>
+                            <a
+                              href="tel:081234567890"
+                              style={styles.circleSageBtn}
+                              title="Hubungi Darurat"
+                            >
+                              <PhoneIcon color="#FFFFFF" size={18} />
+                            </a>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => setSelectedIncident(item)}
+                            style={styles.detailsLink}
+                          >
+                            Details
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      
       </section>
 
-      {/* =========================================================
-          SECTION 3: FOOTER — TENTANG DATUH & COPYRIGHT
-         ========================================================= */}
+      {/* ========= FOOTER ========= */}
       <footer style={styles.footerSection}>
         <div style={styles.footerContent}>
           <h2 style={styles.footerHeading}>Tentang Datuh</h2>
@@ -603,460 +600,3 @@ export default function App() {
     </div>
   );
 }
-
-function PhoneIcon({ color = '#FFFFFF', size = 24 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 36 24" fill={color}>
-      <path d="M5 14C9 8 27 8 31 14L33 19C33 20 31 21 29 21L24 20C23 20 22 19 22 17L22 15C19 14 17 14 14 15L14 17C14 19 13 20 12 20L7 21C5 21 3 20 3 19L5 14Z" />
-    </svg>
-  );
-}
-
-const styles = {
-  wrapper: {
-    fontFamily: "'Space Mono', 'Courier New', monospace",
-    margin: 0,
-    padding: 0,
-    width: '100%',
-    overflowX: 'hidden',
-  },
-
-  // --- SECTION 1 ---
-  topSection: {
-    backgroundColor: '#193B28',
-    minHeight: '100vh',
-    padding: '28px 24px 64px',
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  logoHeader: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '28px',
-  },
-  logoMark: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  logoTitle: {
-    color: '#E5CF7B',
-    fontSize: '26px',
-    fontWeight: 800,
-    letterSpacing: '2px',
-    lineHeight: 1,
-  },
-  logoSub: {
-    color: '#E5CF7B',
-    fontSize: '10px',
-    letterSpacing: '1px',
-    marginTop: '2px',
-  },
-
-  mainHeading: {
-    color: '#E5CF7B',
-    fontSize: '42px',
-    fontWeight: 700,
-    margin: '0 0 24px',
-    letterSpacing: '1px',
-    textAlign: 'center',
-  },
-
-  emergencyStrip: {
-    backgroundColor: '#DC2626',
-    color: '#FFFFFF',
-    padding: '12px 24px',
-    borderRadius: '999px',
-    marginBottom: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    fontWeight: 700,
-    fontSize: '14px',
-    boxShadow: '0 0 20px rgba(220, 38, 38, 0.6)',
-  },
-  emergencyResetBtn: {
-    backgroundColor: '#FFFFFF',
-    color: '#DC2626',
-    border: 'none',
-    borderRadius: '999px',
-    padding: '5px 14px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-
-  cctvOuterContainer: {
-    width: '100%',
-    maxWidth: '720px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  cctvGrid: {
-    position: 'relative',
-    width: '100%',
-    aspectRatio: '16 / 10',
-    backgroundColor: '#E5CF7B',
-    borderRadius: '26px',
-    border: '3px solid #2C5E2E',
-    display: 'grid',
-    overflow: 'hidden',
-    boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
-  },
-  cctvCell: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'background-color 0.15s ease',
-  },
-  webcamVideo: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  overlayCanvas: {
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'none',
-  },
-  camOffOverlay: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px',
-    textAlign: 'center',
-  },
-  camTag: {
-    fontSize: '11px',
-    fontWeight: 700,
-    color: '#193B28',
-  },
-  startCamPill: {
-    backgroundColor: '#193B28',
-    color: '#E5CF7B',
-    border: 'none',
-    borderRadius: '999px',
-    padding: '6px 14px',
-    fontSize: '11px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  liveBadge: {
-    position: 'absolute',
-    top: '8px',
-    left: '8px',
-    backgroundColor: 'rgba(25, 59, 40, 0.85)',
-    color: '#E5CF7B',
-    fontSize: '10px',
-    fontWeight: 700,
-    padding: '3px 8px',
-    borderRadius: '6px',
-  },
-  inactiveCell: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    opacity: 0.45,
-    color: '#193B28',
-  },
-  inactiveLabel: {
-    fontSize: '12px',
-    fontWeight: 700,
-  },
-  inactiveSub: {
-    fontSize: '10px',
-  },
-
-  // Petunjuk statis di bawah tengah grid (tidak bisa diklik, pointerEvents: 'none')
-  zoomHintPill: {
-    position: 'absolute',
-    bottom: '12px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    backgroundColor: '#F1F5F9',
-    color: '#1E293B',
-    border: '1px solid #94A3B8',
-    borderRadius: '999px',
-    padding: '4px 36px',
-    fontSize: '11px',
-    fontWeight: 700,
-    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-    pointerEvents: 'none',
-    zIndex: 10,
-  },
-  zoomHintCorner: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '12px',
-    backgroundColor: 'rgba(25, 59, 40, 0.85)',
-    color: '#E5CF7B',
-    padding: '4px 12px',
-    borderRadius: '999px',
-    fontSize: '11px',
-    fontWeight: 700,
-    pointerEvents: 'none',
-  },
-
-  // Kapsul Sage Green di bawah Grid CCTV
-  sageControlBar: {
-    width: '100%',
-    minHeight: '58px',
-    backgroundColor: '#718B70',
-    borderRadius: '20px',
-    padding: '10px 20px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '12px',
-    boxSizing: 'border-box',
-  },
-  controlGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  controlBtnGold: {
-    backgroundColor: '#E5CF7B',
-    color: '#193B28',
-    border: 'none',
-    borderRadius: '999px',
-    padding: '7px 16px',
-    fontSize: '12px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  controlBtnRed: {
-    backgroundColor: '#DC2626',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '999px',
-    padding: '7px 16px',
-    fontSize: '12px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  controlBtnDark: {
-    backgroundColor: '#193B28',
-    color: '#E5CF7B',
-    border: 'none',
-    borderRadius: '999px',
-    padding: '7px 14px',
-    fontSize: '12px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  sliderText: {
-    color: '#FFFFFF',
-    fontSize: '12px',
-  },
-  statusPill: {
-    backgroundColor: 'rgba(25, 59, 40, 0.55)',
-    color: '#E5CF7B',
-    padding: '4px 10px',
-    borderRadius: '999px',
-    fontSize: '11px',
-    fontWeight: 700,
-  },
-
-  // --- SECTION 2: RIWAYAT & CALL BANNER ---
-  middleSection: {
-    backgroundColor: '#F4EFE6',
-    padding: '64px 24px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '28px',
-  },
-  riwayatOuterCard: {
-    width: '100%',
-    maxWidth: '720px',
-    backgroundColor: '#718B70',
-    borderRadius: '22px',
-    padding: '22px 26px 28px',
-    boxSizing: 'border-box',
-  },
-  riwayatHeading: {
-    color: '#FFFFFF',
-    fontSize: '24px',
-    fontWeight: 700,
-    margin: '0 0 16px 18px',
-  },
-  riwayatInnerWhite: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '4px',
-    padding: '16px',
-  },
-  riwayatScrollArea: {
-    maxHeight: '340px',
-    overflowY: 'auto',
-    paddingRight: '10px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '14px',
-  },
-  riwayatRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    paddingBottom: '14px',
-    borderBottom: '1.5px solid #E5CF7B',
-  },
-  thumbBox: {
-    width: '120px',
-    height: '72px',
-    backgroundColor: '#E5CF7B',
-    flexShrink: 0,
-    overflow: 'hidden',
-  },
-  riwayatInfo: {
-    flex: 1,
-  },
-  riwayatStatus: {
-    fontSize: '20px',
-    fontWeight: 700,
-    marginBottom: '4px',
-  },
-  riwayatMeta: {
-    fontSize: '12px',
-    color: '#5C725B',
-    lineHeight: 1.4,
-  },
-  riwayatActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  circleGoldBtn: {
-    width: '42px',
-    height: '42px',
-    borderRadius: '50%',
-    backgroundColor: '#E5CF7B',
-    color: '#FFFFFF',
-    border: 'none',
-    fontSize: '18px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  circleSageBtn: {
-    width: '42px',
-    height: '42px',
-    borderRadius: '50%',
-    backgroundColor: '#718B70',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textDecoration: 'none',
-  },
-  detailsLink: {
-    background: 'none',
-    border: 'none',
-    color: '#718B70',
-    textDecoration: 'underline',
-    fontStyle: 'italic',
-    fontSize: '13px',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-  },
-
-  // Banner "Mau telp?"
-  callBanner: {
-    width: '100%',
-    maxWidth: '720px',
-    backgroundColor: '#718B70',
-    borderRadius: '18px',
-    padding: '20px 44px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '16px',
-    boxSizing: 'border-box',
-  },
-  callLabel: {
-    color: '#FFFFFF',
-    fontSize: '24px',
-    fontWeight: 700,
-  },
-  callNumberLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '18px',
-    textDecoration: 'none',
-    color: '#FFFFFF',
-  },
-  phoneNumber: {
-    fontSize: '26px',
-    fontWeight: 700,
-    letterSpacing: '1px',
-  },
-
-  // --- SECTION 3: FOOTER ---
-  footerSection: {
-    backgroundColor: '#193B28',
-    padding: '56px 24px 36px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  footerContent: {
-    width: '100%',
-    maxWidth: '720px',
-  },
-  footerHeading: {
-    color: '#E5CF7B',
-    fontSize: '32px',
-    fontWeight: 700,
-    margin: '0 0 14px',
-  },
-  footerDesc: {
-    color: '#E5CF7B',
-    fontSize: '13px',
-    lineHeight: 1.7,
-    margin: '0 0 48px',
-    maxWidth: '620px',
-  },
-  footerDivider: {
-    width: '100%',
-    maxWidth: '820px',
-    height: '1px',
-    backgroundColor: 'rgba(229, 207, 123, 0.35)',
-    marginBottom: '20px',
-  },
-  copyright: {
-    color: '#E5CF7B',
-    fontSize: '12px',
-    textAlign: 'center',
-    lineHeight: 1.6,
-  },
-
-  // Modal Detail
-  modalBackdrop: {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  modalBox: {
-    backgroundColor: '#F4EFE6',
-    border: '3px solid #718B70',
-    borderRadius: '16px',
-    padding: '24px',
-    maxWidth: '400px',
-    width: '90%',
-  },
-};
