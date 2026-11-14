@@ -8,9 +8,7 @@ git clone https://github.com/ruthhhs/datuh-prototype.git
 cd datuh-prototype/
 ```
 
-2. setup ultralytics
+2. run backend + frontend (otomatis setup saat pertama kali)
 ```
-python -m venv venv
-venv\Scripts\activate
-pip install ultralytics opencv-python PySide6
+.\setup.bat
 ```
