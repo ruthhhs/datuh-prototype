@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { colors, styles } from './styles.js';
 
 import logoHeader from './assets/logo-header.png';
+import logoFooter from './assets/logo-footer.png';
 
 const WS_URL = 'ws://localhost:8000/ws/detect';
 
@@ -45,35 +46,13 @@ export default function App() {
   // State Zoom per Kotak CCTV (null = mode grid 3x3, string id = kotak yang sedang di-zoom)
   const [zoomedCctvId, setZoomedCctvId] = useState(null);
   const [selectedIncident, setSelectedIncident] = useState(null);
-  const [incidents, setIncidents] = useState([
-    {
-      id: 1,
-      status: 'Fall Detected',
-      time: 'Hari ini, 14:20',
-      place: 'Ruang Utama',
-      cctv: 'CCTV 01',
-      thumbnail: null,
-      detail: 'Terdeteksi posisi jatuh dengan confidence 89%.',
-    },
-    {
-      id: 2,
-      status: 'False Alarm',
-      time: 'Hari ini, 11:05',
-      place: 'Ruang Keluarga',
-      cctv: 'CCTV 05',
-      thumbnail: null,
-      detail: 'Dibatalkan oleh operator (gerakan membungkuk).',
-    },
-    {
-      id: 3,
-      status: 'Case Closed',
-      time: 'Kemarin, 19:42',
-      place: 'Kamar Tidur',
-      cctv: 'CCTV 02',
-      thumbnail: null,
-      detail: 'Penanganan selesai, kondisi aman.',
-    },
-  ]);
+
+  // Inisialisasi state incidents menjadi array kosong di awal
+  const [incidents, setIncidents] = useState([]); 
+  // (Opsional) Contoh fungsi untuk menambahkan log saat deteksi jatuh terjadi nanti:
+  const handleNewDetection = (newIncident) => {
+    setIncidents((prevIncidents) => [newIncident, ...prevIncidents]);
+  };
 
   // Helper pengecekan kelas fall murni (menghindari "no-fall" dianggap fall)
   const checkIsFall = (det) => {
@@ -332,7 +311,7 @@ export default function App() {
     <div>
       {/* ========= HEADER ========= */}
       <header style={styles.headerSection}>
-        <img src={logoHeader} height="48" alt="logo" />
+        <img src={logoHeader} height="52" alt="logo" />
 
         {/* <div style={styles.callBanner}>
           <a href="tel:081234567890" style={styles.callNumberLink}>
@@ -468,6 +447,7 @@ export default function App() {
         </div>
 
         {/* RIWAYAT */}
+        
         <div style={styles.rightSection}>
           <div style={styles.riwayatOuterCard}>
             <div style={styles.riwayatHeaderContainer}>
@@ -476,69 +456,53 @@ export default function App() {
                 ...styles.statusIndicatorBadge,
                 backgroundColor: fallActive ? colors.danger : colors.matcha
               }}>
-                {fallActive ? '⚠️ Terdeteksi Jatuh' : '✅ Aman'}
+                {fallActive ? '🚨 Terdeteksi Jatuh' : '✅ Aman'}
               </div>
             </div>
 
             <div style={styles.riwayatInnerWhite}>
               <div style={styles.riwayatScrollArea}>
-                {incidents.map((item) => {
-                  const isFall = item.status === 'Fall Detected';
-                  return (
-                    <div key={item.id} style={styles.riwayatRow}>
-                      <div style={styles.thumbBox}>
-                        {item.thumbnail ? (
-                          <img
-                            src={item.thumbnail}
-                            alt="Snapshot"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        ) : null}
-                      </div>
-
-                      <div style={styles.riwayatInfo}>
-                        <div
-                          style={{
-                            ...styles.riwayatStatus,
-                            color: isFall ? colors.danger : colors.matcha,
-                          }}
-                        >
-                          {item.status}
+                {incidents.length === 0 ? (
+                  <div style={styles.emptyLogContainer}>
+                    <p style={styles.emptyLogText}>Belum ada riwayat atau insiden terdeteksi.</p>
+                    <span style={styles.emptyLogSubText}>Log akan otomatis muncul di sini saat sistem mendeteksi kejadian.</span>
+                  </div>
+                ) : (
+                  incidents.map((item) => {
+                    const isFall = item.status === 'Fall Detected';
+                    return (
+                      <div key={item.id} style={styles.riwayatRow}>
+                        <div style={styles.thumbBox}>
+                          {item.thumbnail ? (
+                            <img src={item.thumbnail} alt="Snapshot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : null}
                         </div>
-                        <div style={styles.riwayatMeta}>{item.time} — {item.place}</div>
-                        <div style={styles.riwayatMeta}>{item.cctv}</div>
-                      </div>
 
-                      <div style={styles.riwayatActions}>
-                        {isFall ? (
-                          <>
-                            <button
-                              onClick={() => markFalseAlarm(item.id)}
-                              style={styles.circleGoldBtn}
-                              title="Tandai sebagai False Alarm"
-                            >
-                              ✕
-                            </button>
-                            <a
-                              href="tel:081234567890"
-                              style={styles.circleSageBtn}
-                              title="Hubungi Darurat"
-                            >
-                              <PhoneIcon color="#FFFFFF" size={18} />
-                            </a>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => setSelectedIncident(item)}
-                            style={styles.detailsLink}
-                          >
-                            Details
-                          </button>
-                        )}
+                        <div style={styles.riwayatInfo}>
+                          <div style={{ ...styles.riwayatStatus, color: isFall ? colors.danger : colors.matcha }}>
+                            {item.status}
+                          </div>
+                          <div style={styles.riwayatMetaCctv}>{item.cctv}</div>
+                          <div style={styles.riwayatMeta}>{item.time} — {item.place}</div>
+                        </div>
+
+                        <div style={styles.riwayatActions}>
+                          {isFall ? (
+                            <>
+                              <button onClick={() => markFalseAlarm(item.id)} style={styles.circleXBtn} title="Tandai False Alarm">✕</button>
+                              <a href="tel:081234567890" style={styles.circleCallBtn} title="Hubungi Darurat">
+                                <PhoneIcon color={colors.white} size={18} />
+                              </a>
+                            </>
+                          ) : (
+                            // <button onClick={() => setSelectedIncident(item)} style={styles.detailsLink}>Details</button>
+                            <span style={styles.detailsLink}>Keterangan palsu</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
@@ -549,25 +513,50 @@ export default function App() {
 
       {/* ========= FOOTER ========= */}
       <footer style={styles.footerSection}>
-        <div style={styles.footerContent}>
-          <h2 style={styles.footerHeading}>Tentang Datuh</h2>
-          <p style={styles.footerDesc}>
-            DATUH (Deteksi Jatuh) adalah sistem pemantauan keselamatan berbasis kecerdasan
-            buatan (YOLOv11) yang mendeteksi insiden terjatuh secara real-time melalui kamera
-            CCTV dan mengirimkan peringatan darurat otomatis kepada keluarga maupun tenaga medis.
-          </p>
+        <div style={styles.footerContainer}>
+          
+          {/* Kolom 1: Identitas & Logo */}
+          <div style={styles.footerBrandCol}>
+            <div style={styles.footerLogo }>
+              <img src={logoFooter} height="62" alt="logo" />
+            </div>
+            <p style={styles.footerBrandDesc}>
+              DATUH (Deteksi Jatuh) adalah sistem pemantauan keselamatan berbasis Computer Vision (YOLOv11) 
+              untuk mendeteksi insiden darurat secara real-time demi keamanan keluarga tercinta.
+            </p>
+          </div>
+
+          {/* Kolom 2: Tim Pembuat */}
+          <div style={styles.footerLinksCol}>
+            <h4 style={styles.footerColTitle}>Tim Pengembang</h4>
+            <ul style={styles.footerList}>
+              <li style={styles.footerListItem}>🌹 Puti (CV & System Engineer)</li>
+              <li style={styles.footerListItem}>🌷 Ruth (Dataset & Frontend Developer)</li>
+            </ul>
+          </div>
+
+          {/* Kolom 3: Tautan Cepat / Informasi */}
+          <div style={styles.footerLinksCol}>
+            <h4 style={styles.footerColTitle}>Sistem & Bantuan</h4>
+            <ul style={styles.footerList}>
+              <li><a href="#cctv" style={styles.footerLinkItem}>Monitor CCTV 3x3</a></li>
+              <li><a href="#log" style={styles.footerLinkItem}>Log Pemantauan</a></li>
+              <li><a href="tel:081234567890" style={styles.footerLinkItem}>Kontak Darurat</a></li>
+            </ul>
+          </div>
+
         </div>
 
         <div style={styles.footerDivider} />
-        <div style={styles.copyright}>
-          © 2026 Ruth-Puti.
-          <br />
-          All rights reserved.
+        
+        <div style={styles.copyrightContainer}>
+          <span style={styles.copyrightText}>© 2026 DATUH System. All rights reserved.</span>
+          <span style={styles.copyrightSubText}>Built with React & YOLOv11</span>
         </div>
       </footer>
 
       {/* MODAL DETAIL INSIDEN */}
-      {selectedIncident && (
+      {/* {selectedIncident && (
         <div style={styles.modalBackdrop} onClick={() => setSelectedIncident(null)}>
           <div style={styles.modalBox} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 8px', color: '#193B28' }}>{selectedIncident.status}</h3>
@@ -585,7 +574,7 @@ export default function App() {
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

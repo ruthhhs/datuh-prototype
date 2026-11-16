@@ -20,8 +20,8 @@ FALL_CLASSES = {"fall", "no-fall"}  # nama kelas
 IMG_SIZE = 640        # turunkan ke 416/320 kalau lambat di CPU
 DEFAULT_CONF = 0.5
 WINDOW = 15           # jumlah frame terakhir yang dipantau per koneksi
-MIN_HITS = 8          # minimal frame "jatuh" dalam WINDOW agar status jatuh aktif
-COOLDOWN = 10         # detik jeda antar alarm
+MIN_HITS = 3          # minimal frame "jatuh" dalam WINDOW agar status jatuh aktif
+COOLDOWN = 5         # detik jeda antar alarm
 # =======================
 
 app = FastAPI(title="Fall Detection API")

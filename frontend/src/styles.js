@@ -1,12 +1,12 @@
 export const colors = {
     brownie: '#6E3427',
     matcha: '#57782e',
-    pistachio: '#adbc4b',
+    pistachio: '#b7c656',
     cream: '#FDEBAA',
     lightcream: '#fff8dc',
     strawberry: 'rgb(250, 116, 139)',
     strawberrycream: '#FEBAA5',
-    danger: '#d82e2e',
+    danger: '#b72828',
     white: '#FFFFFF',
 };
 
@@ -128,7 +128,7 @@ export const styles = {
         position: 'absolute',
         top: '8px',
         right: '8px',
-        backgroundColor: colors.strawberry,
+        backgroundColor: colors.danger,
         color: colors.white,
         fontSize: '11px',
         fontWeight: 700,
@@ -263,7 +263,12 @@ export const styles = {
         borderRadius: '999px',
         boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
     },
-    riwayatInnerWhite: { backgroundColor: colors.lightcream, borderRadius: '12px', padding: '12px' },
+    riwayatInnerWhite: {
+        backgroundColor: colors.lightcream,
+        borderRadius: '12px',
+        padding: '12px',
+        // border: `2px solid ${colors.brownie}`, 
+    },
     riwayatScrollArea: {
         maxHeight: '380px', overflowY: 'auto', paddingRight: '6px', display: 'flex',
         flexDirection: 'column', gap: '12px',
@@ -276,42 +281,133 @@ export const styles = {
     riwayatInfo: { flex: 1 },
     riwayatStatus: { fontSize: '15px', fontWeight: 700, marginBottom: '2px' },
     riwayatMeta: { fontSize: '11px', color: colors.matcha, lineHeight: 1.3 },
+    riwayatMetaCctv: {fontWeight: 600, fontSize: '11px', color: colors.matcha, lineHeight: 1.3},
     riwayatActions: { display: 'flex', alignItems: 'center', gap: '8px' },
-    circleGoldBtn: {
-        width: '36px', height: '36px', borderRadius: '50%', backgroundColor: colors.cream, color: colors.brownie,
+    circleXBtn: {
+        width: '32px', height: '32px', borderRadius: '50%', backgroundColor: colors.cream, color: colors.brownie,
         border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
     },
-    circlematchaBtn: {
-        width: '36px', height: '36px', borderRadius: '50%', backgroundColor: colors.matcha, display: 'flex',
+    circleCallBtn: {
+        width: '32px', height: '32px', borderRadius: '50%', backgroundColor: colors.strawberry, display: 'flex',
         alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
     },
     detailsLink: {
         background: 'none', border: 'none', color: colors.matcha, textDecoration: 'underline',
         fontStyle: 'italic', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
     },
+    emptyLogContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '36px 16px',
+        textAlign: 'center',
+        gap: '8px',
+    },
+    emptyLogText: {
+        fontSize: '14px',
+        fontWeight: 600,
+        color: colors.brownie,
+        margin: 0,
+    },
+    emptyLogSubText: {
+        fontSize: '12px',
+        color: '#5C725B',
+        margin: 0,
+        lineHeight: 1.4,
+    },
 
-    // FOOTER
+    // FOOTER BARU YANG LEBIH CANTIK & ELEGAN
     footerSection: {
         backgroundColor: colors.brownie,
-        padding: '40px 24px 24px', 
+        padding: '50px 40px 24px', 
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center',
     },
-    footerContent: { width: '100%', maxWidth: '720px' },
-    footerHeading: { color: colors.cream, fontSize: '24px', fontWeight: 700, margin: '0 0 10px' },
-    footerDesc: { color: colors.cream, fontSize: '12px', lineHeight: 1.6, margin: '0 0 32px', maxWidth: '620px', opacity: 0.9 },
-    footerDivider: { width: '100%', maxWidth: '820px', height: '1px', backgroundColor: 'rgba(253, 235, 170, 0.25)', marginBottom: '16px' },
-    copyright: { color: colors.cream, fontSize: '11px', textAlign: 'center', lineHeight: 1.5, opacity: 0.8 },
-
-    // MODALS
-    modalBackdrop: {
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(13, 7, 6, 0.65)', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', zIndex: 100, backdropFilter: 'blur(4px)',
+    footerContainer: {
+        width: '100%',
+        maxWidth: '1100px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        flexWrap: 'wrap',
+        gap: '40px',
+        marginBottom: '36px',
     },
-    modalBox: {
-        backgroundColor: '#F9F6EE', border: `3px solid ${colors.matcha}`, borderRadius: '16px',
-        padding: '24px', maxWidth: '400px', width: '90%', boxShadow: '0 15px 35px rgba(0,0,0,0.3)',
+    footerBrandCol: {
+        flex: '1.5',
+        minWidth: '280px',
+    },
+    footerLogo: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '14px',
+    },
+    footerBrandDesc: {
+        color: colors.strawberrycream,
+        fontSize: '12px',
+        lineHeight: '1.6',
+        margin: 0,
+        maxWidth: '360px',
+        fontweight: 400,
+    },
+    footerLinksCol: {
+        flex: '1',
+        minWidth: '180px',
+    },
+    footerColTitle: {
+        color: colors.cream,
+        fontSize: '15px',
+        fontWeight: 700,
+        marginBottom: '14px',
+        fontFamily: 'Poppins, sans-serif',
+    },
+    footerList: {
+        listStyle: 'none',
+        padding: 0,
+        margin: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    footerListItem: {
+        color: colors.strawberrycream,
+        fontSize: '12px',
+        fontWeight: 500,
+    },
+    footerLinkItem: {
+        color: colors.strawberrycream,
+        fontSize: '12px',
+        fontWeight: 500,
+        textDecoration: 'none',
+        transition: 'opacity 0.2s',
+    },
+    footerDivider: {
+        width: '100%',
+        maxWidth: '1100px',
+        height: '1px',
+        backgroundColor: colors.strawberry,
+        marginBottom: '20px',
+    },
+    copyrightContainer: {
+        width: '100%',
+        maxWidth: '1100px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '10px',
+    },
+    copyrightText: {
+        color: colors.strawberrycream,
+        fontSize: '11px',
+    },
+    copyrightSubText: {
+        color: colors.strawberrycream,
+        fontSize: '11px',
+        fontFamily: 'JetBrains Mono, monospace',
     },
 };
