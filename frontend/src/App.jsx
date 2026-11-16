@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { styles } from './styles.js';
+import { colors, styles } from './styles.js';
 
-import logoIcon from './assets/logo-icon.png';
+import logoHeader from './assets/logo-header.png';
 
 const WS_URL = 'ws://localhost:8000/ws/detect';
 
 const CCTV_SLOTS = [
-  { id: 'CCTV 01', location: 'Ruang Utama (Live Webcam)', isLive: true },
+  { id: 'CCTV 01', location: 'Ruang Utama', isLive: true },
   { id: 'CCTV 02', location: 'Kamar Tidur', isLive: false },
   { id: 'CCTV 03', location: 'Dapur', isLive: false },
   { id: 'CCTV 04', location: 'Teras Depan', isLive: false },
@@ -332,20 +332,14 @@ export default function App() {
     <div>
       {/* ========= HEADER ========= */}
       <header style={styles.headerSection}>
-        <div style={styles.logoMark}>
-          <img src={logoIcon} width="38" height="38" alt="logo-icon" />
-          <div style={styles.logoText}>
-            <h2>DATUH</h2>
-            <h6>Deteksi Jatuh</h6>
-          </div>
-        </div>
+        <img src={logoHeader} height="48" alt="logo" />
 
-        <div style={styles.callBanner}>
+        {/* <div style={styles.callBanner}>
           <a href="tel:081234567890" style={styles.callNumberLink}>
             <PhoneIcon color="#FFFFFF" size={34} />
             <span style={styles.phoneNumber}>0812-3456-7890</span>
           </a>
-        </div>
+        </div> */}
       </header>
 
       {/* ========= MAIN SECTION ========= */}
@@ -353,110 +347,108 @@ export default function App() {
 
         {/* KAMERA CCTV */}
         <div style={styles.leftSection}>
-          <h1>Monitor CCTV</h1>
-
-          {/* GRID MONITOR CCTV 3x3 — KLIK PER KOTAK UNTUK ZOOM */}
           <div style={styles.cctvOuterContainer}>
-              <div
-                style={{
-                  ...styles.cctvGrid,
-                  gridTemplateColumns: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
-                  gridTemplateRows: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
-                }}
-              >
-                {CCTV_SLOTS.map((slot, index) => {
-                  const isHidden = zoomedCctvId !== null && zoomedCctvId !== slot.id;
-                  const isThisZoomed = zoomedCctvId === slot.id;
+            {/* GRID MONITOR CCTV 3x3 — KLIK PER KOTAK UNTUK ZOOM */}
+            <div
+              style={{
+                ...styles.cctvGrid,
+                gridTemplateColumns: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
+                gridTemplateRows: zoomedCctvId ? '1fr' : 'repeat(3, 1fr)',
+              }}
+            >
+              {CCTV_SLOTS.map((slot, index) => {
+                const isHidden = zoomedCctvId !== null && zoomedCctvId !== slot.id;
+                const isThisZoomed = zoomedCctvId === slot.id;
+                const isThisCameraFall = slot.id === 'CCTV 01' && fallActive;
 
-                  // Asumsi: Kita cek apakah slot kamera ini sedang jatuh (misal CCTV 01 atau berdasarkan state fallActive)
-                  const isThisCameraFall = slot.id === 'CCTV 01' && fallActive;
-
-                  return (
-                    <div
-                      key={slot.id}
-                      onClick={() => handleCellClick(slot.id)}
-                      title={isThisZoomed ? 'Klik untuk kembali ke tampilan 3x3' : `Klik untuk memperbesar ${slot.id}`}
-                      style={{
-                        ...styles.cctvCell,
-                        display: isHidden ? 'none' : 'flex',
-                        borderRight: !zoomedCctvId && (index + 1) % 3 !== 0 ? '3px solid #2C5E2E' : 'none',
-                        borderBottom: !zoomedCctvId && index < 6 ? '3px solid #2C5E2E' : 'none',
-                        // Border merah dihilangkan total, diganti badge
-                        cursor: isThisZoomed ? 'zoom-out' : 'zoom-in',
-                      }}
-                    >
-                      {slot.isLive ? (
-                        <>
-                          <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            style={{
-                              ...styles.webcamVideo,
-                              display: isCameraOn ? 'block' : 'none',
-                            }}
-                          />
-                          <canvas
-                            ref={canvasRef}
-                            style={{
-                              ...styles.overlayCanvas,
-                              display: isCameraOn ? 'block' : 'none',
-                            }}
-                          />
-                          {!isCameraOn && (
-                            <div style={styles.camOffOverlay}>
-                              <span style={styles.camTag}>{slot.id} — {slot.location}</span>
-                              <button onClick={startWebcam} style={styles.startCamPill}>
-                                ▶ Aktifkan Kamera
-                              </button>
+                return (
+                  <div
+                    key={slot.id}
+                    onClick={() => handleCellClick(slot.id)}
+                    title={isThisZoomed ? 'Klik untuk kembali ke tampilan 3x3' : `Klik untuk memperbesar ${slot.id}`}
+                    style={{
+                      ...styles.cctvCell,
+                      display: isHidden ? 'none' : 'flex',
+                      borderRight: !zoomedCctvId && (index + 1) % 3 !== 0 ? '2.5px solid #6E3427' : 'none',
+                      borderBottom: !zoomedCctvId && index < 6 ? '2.5px solid #6E3427' : 'none',
+                      cursor: isThisZoomed ? 'zoom-out' : 'zoom-in',
+                    }}
+                  >
+                    {slot.isLive ? (
+                      <>
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          style={{
+                            ...styles.webcamVideo,
+                            display: isCameraOn ? 'block' : 'none',
+                          }}
+                        />
+                        <canvas
+                          ref={canvasRef}
+                          style={{
+                            ...styles.overlayCanvas,
+                            display: isCameraOn ? 'block' : 'none',
+                          }}
+                        />
+                        {!isCameraOn && (
+                          <div style={styles.camOffOverlay}>
+                            <div style={styles.camTagContainer}>
+                              <span style={styles.camTag}>{slot.id}</span>
+                              <span style={styles.camTagSub}>{slot.location}</span>
                             </div>
-                          )}
-                          {isCameraOn && (
-                            <span style={styles.liveBadge}>
-                              ● LIVE {slot.id}
-                            </span>
-                          )}
+                            <button onClick={startWebcam} style={styles.startCamPill}>
+                              ▶ Aktifkan Kamera
+                            </button>
+                          </div>
+                        )}
+                        {isCameraOn && (
+                          <span style={styles.liveBadge}>
+                            ● LIVE {slot.id}
+                          </span>
+                        )}
 
-                          {/* BADGE JATUH DI MASING-MASING KAMERA JIKA TERDETEKSI */}
-                          {isThisCameraFall && (
-                            <div style={styles.cameraFallBadge}>
-                              🚨 JATUH
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div style={styles.inactiveCell}>
-                          <span style={styles.inactiveLabel}>{slot.id}</span>
-                          <span style={styles.inactiveSub}>{slot.location}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                        {/* BADGE JATUH DI MASING-MASING KAMERA JIKA TERDETEKSI */}
+                        {isThisCameraFall && (
+                          <div style={styles.cameraFallBadge}>
+                            🚨 JATUH
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div style={styles.inactiveCell}>
+                        <span style={styles.inactiveLabel}>{slot.id}</span>
+                        <span style={styles.inactiveSub}>{slot.location}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-            {/* KAPSUL SAGE GREEN DI BAWAH GRID (CONTROL BAR KAMERA & MODEL) */}
-            <div style={styles.sageControlBar}>
+            {/* CONTROL BAR KAMERA & MODEL */}
+            <div style={styles.controlBar}>
               <div style={styles.controlGroup}>
                 {!isCameraOn ? (
-                  <button onClick={startWebcam} style={styles.controlBtnGold}>
+                  <button onClick={startWebcam} style={styles.controlBtnStart}>
                     ▶ Mulai Deteksi
                   </button>
                 ) : (
-                  <button onClick={stopWebcam} style={styles.controlBtnRed}>
+                  <button onClick={stopWebcam} style={styles.controlBtnStop}>
                     ⏹ Stop Kamera
                   </button>
                 )}
 
-                <button onClick={() => setIsMuted(!isMuted)} style={styles.controlBtnDark}>
+                <button onClick={() => setIsMuted(!isMuted)} style={styles.controlBtnMute}>
                   {isMuted ? '🔇 Mute' : '🔊 Alarm On'}
                 </button>
               </div>
 
               <div style={styles.controlGroup}>
                 <label style={styles.sliderText}>
-                  Conf: <strong>{Math.round(conf * 100)}%</strong>
+                  Confident: <strong>{Math.round(conf * 100)}%</strong>
                 </label>
                 <input
                   type="range"
@@ -465,7 +457,7 @@ export default function App() {
                   step="0.05"
                   value={conf}
                   onChange={handleConfChange}
-                  style={{ accentColor: '#E5CF7B', cursor: 'pointer' }}
+                  style={{ accentColor: '#d9e57b', cursor: 'pointer' }}
                 />
                 <span style={styles.statusPill}>
                   {isConnected ? `WS OK (${latencyMs}ms)` : 'WS Offline'}
@@ -479,11 +471,10 @@ export default function App() {
         <div style={styles.rightSection}>
           <div style={styles.riwayatOuterCard}>
             <div style={styles.riwayatHeaderContainer}>
-              <h2 style={styles.riwayatHeading}>Riwayat</h2>
-              {/* Status Aman / Terdeteksi Jatuh dipindah ke sini */}
+              <h2 style={styles.riwayatHeading}>Log Pemantauan CCTV</h2>
               <div style={{
                 ...styles.statusIndicatorBadge,
-                backgroundColor: fallActive ? '#DC2626' : '#2C5E2E'
+                backgroundColor: fallActive ? colors.danger : colors.matcha
               }}>
                 {fallActive ? '⚠️ Terdeteksi Jatuh' : '✅ Aman'}
               </div>
@@ -509,15 +500,13 @@ export default function App() {
                         <div
                           style={{
                             ...styles.riwayatStatus,
-                            color: isFall ? '#B91C1C' : '#718B70',
+                            color: isFall ? colors.danger : colors.matcha,
                           }}
                         >
                           {item.status}
                         </div>
-                        <div style={styles.riwayatMeta}>
-                          Time, Place: {item.time} — {item.place}
-                        </div>
-                        <div style={styles.riwayatMeta}>CCTV No. : {item.cctv}</div>
+                        <div style={styles.riwayatMeta}>{item.time} — {item.place}</div>
+                        <div style={styles.riwayatMeta}>{item.cctv}</div>
                       </div>
 
                       <div style={styles.riwayatActions}>
